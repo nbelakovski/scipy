@@ -1,5 +1,6 @@
 py3.install_sources([
     '__init__.py',
+    '_scipy_spectral_test_shim.py',
     'mpsig.py',
     'test_array_tools.py',
     'test_bsplines.py',
@@ -13,13 +14,15 @@ py3.install_sources([
     'test_peak_finding.py',
     'test_result_type.py',
     'test_savitzky_golay.py',
+    'test_short_time_fft.py',
     'test_signaltools.py',
     'test_spectral.py',
+    'test_splines.py',
     'test_upfirdn.py',
     'test_waveforms.py',
     'test_wavelets.py',
     'test_windows.py'
   ],
-  pure: false,
-  subdir: 'scipy/signal/tests'
+  subdir: 'scipy/signal/tests',
+  install_tag: 'tests'
 )

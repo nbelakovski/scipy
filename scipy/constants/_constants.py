@@ -6,6 +6,20 @@ print '10 mile per minute is', 10*mile/minute, 'm/s or', 10*mile/(minute*knot), 
 
 The list is not meant to be comprehensive, but just convenient for everyday use.
 """
+
+from __future__ import annotations
+
+import math as _math
+from typing import TYPE_CHECKING, Any
+
+from ._codata import value as _cd
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
+
+from scipy._lib._array_api import array_namespace, _asarray
+
+
 """
 BasSw 2006
 physical constants: imported from CODATA
@@ -14,11 +28,6 @@ Use at own risk: double-check values before calculating your Mars orbit-insertio
 Some constants exist in a few variants, which are marked with suffixes.
 The ones without any suffix should be the most common ones.
 """
-
-import math as _math
-from ._codata import value as _cd
-import numpy as _np
-
 
 __all__ = [
     'Avogadro', 'Boltzmann', 'Btu', 'Btu_IT', 'Btu_th', 'G',
@@ -48,8 +57,8 @@ __all__ = [
     'nautical_mile', 'neutron_mass', 'nu2lambda',
     'ounce', 'oz', 'parsec', 'pebi', 'peta',
     'pi', 'pico', 'point', 'pound', 'pound_force',
-    'proton_mass', 'psi', 'pt', 'short_ton',
-    'sigma', 'slinch', 'slug', 'speed_of_light',
+    'proton_mass', 'psi', 'pt', 'quecto', 'quetta', 'ronna', 'ronto',
+    'short_ton', 'sigma', 'slinch', 'slug', 'speed_of_light',
     'speed_of_sound', 'stone', 'survey_foot',
     'survey_mile', 'tebi', 'tera', 'ton_TNT',
     'torr', 'troy_ounce', 'troy_pound', 'u',
@@ -63,6 +72,8 @@ pi = _math.pi
 golden = golden_ratio = (1 + _math.sqrt(5)) / 2
 
 # SI prefixes
+quetta = 1e30
+ronna = 1e27
 yotta = 1e24
 zetta = 1e21
 exa = 1e18
@@ -83,6 +94,8 @@ femto = 1e-15
 atto = 1e-18
 zepto = 1e-21
 yocto = 1e-24
+ronto = 1e-27
+quecto = 1e-30
 
 # binary prefixes
 kibi = 2**10
@@ -185,7 +198,8 @@ fluid_ounce_imp = gallon_imp / 160
 # speed in meter per second
 kmh = 1e3 / hour
 mph = mile / hour
-mach = speed_of_sound = 340.5  # approx value at 15 degrees in 1 atm. Is this a common value?
+# approx value of mach at 15 degrees in 1 atm. Is this a common value?
+mach = speed_of_sound = 340.5
 knot = nautical_mile / hour
 
 # temperature in kelvin
@@ -213,7 +227,11 @@ kgf = kilogram_force = g  # * 1 kg
 # functions for conversions that are not linear
 
 
-def convert_temperature(val, old_scale, new_scale):
+def convert_temperature(
+    val: npt.ArrayLike,
+    old_scale: str,
+    new_scale: str,
+) -> Any:
     """
     Convert from a temperature scale to another one among Celsius, Kelvin,
     Fahrenheit, and Rankine scales.
@@ -248,23 +266,26 @@ def convert_temperature(val, old_scale, new_scale):
     Examples
     --------
     >>> from scipy.constants import convert_temperature
+    >>> import numpy as np
     >>> convert_temperature(np.array([-40, 40]), 'Celsius', 'Kelvin')
     array([ 233.15,  313.15])
 
     """
+    xp = array_namespace(val)
+    _val = _asarray(val, xp=xp, subok=True)
     # Convert from `old_scale` to Kelvin
     if old_scale.lower() in ['celsius', 'c']:
-        tempo = _np.asanyarray(val) + zero_Celsius
+        tempo = _val + zero_Celsius
     elif old_scale.lower() in ['kelvin', 'k']:
-        tempo = _np.asanyarray(val)
+        tempo = _val
     elif old_scale.lower() in ['fahrenheit', 'f']:
-        tempo = (_np.asanyarray(val) - 32) * 5 / 9 + zero_Celsius
+        tempo = (_val - 32) * 5 / 9 + zero_Celsius
     elif old_scale.lower() in ['rankine', 'r']:
-        tempo = _np.asanyarray(val) * 5 / 9
+        tempo = _val * 5 / 9
     else:
-        raise NotImplementedError("%s scale is unsupported: supported scales "
-                                  "are Celsius, Kelvin, Fahrenheit, and "
-                                  "Rankine" % old_scale)
+        raise NotImplementedError(f"{old_scale=} is unsupported: supported scales "
+                                   "are Celsius, Kelvin, Fahrenheit, and "
+                                   "Rankine")
     # and from Kelvin to `new_scale`.
     if new_scale.lower() in ['celsius', 'c']:
         res = tempo - zero_Celsius
@@ -275,9 +296,9 @@ def convert_temperature(val, old_scale, new_scale):
     elif new_scale.lower() in ['rankine', 'r']:
         res = tempo * 9 / 5
     else:
-        raise NotImplementedError("'%s' scale is unsupported: supported "
-                                  "scales are 'Celsius', 'Kelvin', "
-                                  "'Fahrenheit', and 'Rankine'" % new_scale)
+        raise NotImplementedError(f"{new_scale=} is unsupported: supported "
+                                   "scales are 'Celsius', 'Kelvin', "
+                                   "'Fahrenheit', and 'Rankine'")
 
     return res
 
@@ -285,7 +306,7 @@ def convert_temperature(val, old_scale, new_scale):
 # optics
 
 
-def lambda2nu(lambda_):
+def lambda2nu(lambda_: npt.ArrayLike) -> Any:
     """
     Convert wavelength to optical frequency
 
@@ -307,14 +328,16 @@ def lambda2nu(lambda_):
     Examples
     --------
     >>> from scipy.constants import lambda2nu, speed_of_light
+    >>> import numpy as np
     >>> lambda2nu(np.array((1, speed_of_light)))
     array([  2.99792458e+08,   1.00000000e+00])
 
     """
-    return c / _np.asanyarray(lambda_)
+    xp = array_namespace(lambda_)
+    return c / _asarray(lambda_, xp=xp, subok=True)
 
 
-def nu2lambda(nu):
+def nu2lambda(nu: npt.ArrayLike) -> Any:
     """
     Convert optical frequency to wavelength.
 
@@ -336,8 +359,10 @@ def nu2lambda(nu):
     Examples
     --------
     >>> from scipy.constants import nu2lambda, speed_of_light
+    >>> import numpy as np
     >>> nu2lambda(np.array((1, speed_of_light)))
     array([  2.99792458e+08,   1.00000000e+00])
 
     """
-    return c / _np.asanyarray(nu)
+    xp = array_namespace(nu)
+    return c / _asarray(nu, xp=xp, subok=True)

@@ -15,6 +15,7 @@ Simple Ratio-of-Uniforms (SROU)
 SROU is based on the ratio-of-uniforms method that uses universal inequalities for constructing
 a (universal) bounding rectangle. It works for T-concave distributions with T(x) = -1/sqrt(x).
 
+    >>> import numpy as np
     >>> from scipy.stats.sampling import SimpleRatioUniforms
 
 Suppose we have the normal distribution:
@@ -38,7 +39,7 @@ Now, we can use the `rvs` method to generate samples from the distribution:
 
     >>> rvs = rng.rvs(10)
 
-If the CDF at mode is avaialble, it can be set to improve the performace of `rvs`:
+If the CDF at mode is available, it can be set to improve the performance of `rvs`:
 
     >>> from scipy.stats import norm
     >>> rng = SimpleRatioUniforms(dist, mode=0,
@@ -51,6 +52,7 @@ We can check that the samples are from the given distribution by visualizing
 its histogram:
 
 .. plot::
+    :alt: " "
 
     >>> from scipy.stats.sampling import SimpleRatioUniforms
     >>> from scipy.stats import norm
@@ -100,7 +102,7 @@ given by `np.arange(1.5, 5, 1000)`.
     ...     rng = SimpleRatioUniforms(dist, mode=p[i]-1,
     ...                               pdf_area=math.gamma(p[i]),
     ...                               random_state=urng)
-    ...     with np.suppress_warnings() as sup:
+    ...     with np.testing.suppress_warnings() as sup:
     ...         sup.filter(RuntimeWarning, "invalid value encountered in double_scalars")
     ...         sup.filter(RuntimeWarning, "overflow encountered in exp")
     ...         res[i] = rng.rvs(100)
