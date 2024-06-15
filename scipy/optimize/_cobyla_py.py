@@ -193,7 +193,8 @@ def fmin_cobyla(func, x0, cons, args=(), consargs=None, rhobeg=1.0,
 def _minimize_cobyla(fun, x0, args=(), constraints=(),
                      rhobeg=1.0, tol=1e-6, maxiter=1000,
                      disp=False, catol=np.sqrt(np.finfo(float).eps),
-                     callback=None, bounds=None, **unknown_options):
+                     ftarget=-np.inf, callback=None, bounds=None,
+                     **unknown_options):
     """
     Minimize a scalar function of one or more variables using the
     Constrained Optimization BY Linear Approximation (COBYLA) algorithm.
@@ -212,6 +213,8 @@ def _minimize_cobyla(fun, x0, args=(), constraints=(),
         Maximum number of function evaluations.
     catol : float
         Tolerance (absolute) for constraint violations
+    ftarget : float
+        Stop if the objective function is less than `ftarget`.
 
     """
     # import here to avoid circular imports
@@ -277,11 +280,12 @@ def _minimize_cobyla(fun, x0, args=(), constraints=(),
         A_eq, b_eq, A_ineq, b_ineq = None, None, None, None
 
     options = {
-        'rhobeg': rhobeg,
-        'rhoend': rhoend,
+        'ctol': catol,
+        'ftarget': ftarget,
         'iprint': iprint,
         'maxfev': maxfun,
-        'ctol': catol,
+        'rhobeg': rhobeg,
+        'rhoend': rhoend,
     }
 
     if len(nonlinear_constraints) > 0:
